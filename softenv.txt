@@ -1,0 +1,11 @@
+
+
+
+
+conda create -n seqomatic tk==8.6.14 jupyter scipy qtpy==2.4.1 numpy==2.26  pyserial  
+conda install deprecation matplotlib pandas pycromanager python-decouple 
+conda install scikit-image dask imageio pillow pyzmq scipy tifffile tzlocal 
+conda install colorama pandoc nbconvert 
+
+pip install nidaqmx   ( deprecation  tzlocal hightime  python-decouple ) 
+pip install opencv-python  (numpy<2.4.0 >=2)

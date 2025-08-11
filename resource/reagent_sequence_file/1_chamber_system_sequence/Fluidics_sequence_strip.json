@@ -1,0 +1,104 @@
+[
+    {
+        "unit_volume": 4.0,
+        "source": "6",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "import",
+        "pump_port": "batch_reagents"
+    },
+    {
+        "unit_volume": 4,
+        "source": "null",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "export",
+        "pump_port": "chamber1"
+    },
+    {
+        "unit_volume": 2.0,
+        "source": "6",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "import",
+        "pump_port": "batch_reagents"
+    },
+    {
+        "unit_volume": 0,
+        "source": "null",
+        "flow_rate": "null",
+        "time": 300,
+        "temperature": 57,
+        "Solution name": "STRIP incubation wait",
+        "device": "heat_device",
+        "process": "wait",
+        "pump_port": "null",
+        "speed_code": 26
+    },
+    {
+        "unit_volume": 2,
+        "source": "null",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "export",
+        "pump_port": "chamber1"
+    },
+    {
+        "unit_volume": 2.0,
+        "source": "6",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "import",
+        "pump_port": "batch_reagents"
+    },
+    {
+        "unit_volume": 0,
+        "source": "null",
+        "flow_rate": "null",
+        "time": 300,
+        "temperature": 57,
+        "Solution name": "STRIP incubation wait",
+        "device": "heat_device",
+        "process": "wait",
+        "pump_port": "null",
+        "speed_code": 26
+    },
+    {
+        "unit_volume": 2,
+        "source": "null",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "STRIP Buffer",
+        "device": "pump",
+        "process": "export",
+        "pump_port": "chamber1"
+    },
+    {
+        "unit_volume": 0,
+        "source": "null",
+        "flow_rate": "null",
+        "time": 300,
+        "temperature": 57,
+        "Solution name": "STRIP incubation wait",
+        "device": "heat_device",
+        "process": "wait",
+        "pump_port": "null",
+        "speed_code": 26
+    }
+]

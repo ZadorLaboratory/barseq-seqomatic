@@ -1,0 +1,10 @@
+[{"solution": "Incorporation Buffer", "address":1},
+{"solution": "PBST", "address":2},
+{ "solution": "Iodoacetamide Blocker", "address":3},     
+{ "solution": "USM","address":4},  
+{"solution": "FISH WASH", "address":5},
+{"solution": "STRIP","address":6},
+{"solution": "hyb oligos","address":7},
+{"solution": "DAPI","address":8}, 
+{"solution": "bc oligos","address":9}, 
+{"solution": "gene oligos","address":10}]
