@@ -113,7 +113,7 @@ my_widgets.focus_btn.grid(row=0, column=0, padx=10, pady=10)
 my_widgets.align_btn.grid(row=0, column=1, padx=10, pady=10)
 my_widgets.tile_btn.grid(row=0, column=2, padx=10, pady=10)
 my_widgets.max_btn.grid(row=0, column=3, padx=10, pady=10)
-my_widgets.cancle_image_btn.grid(row=0, column=4, padx=10, pady=10)
+my_widgets.cancel_image_btn.grid(row=0, column=4, padx=10, pady=10)
 
 if __name__ == '__main__':
     mainwindow.mainloop()

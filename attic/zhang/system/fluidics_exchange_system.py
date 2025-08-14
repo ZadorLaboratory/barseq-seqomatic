@@ -459,15 +459,3 @@ class FluidicSystem():
         return protocol
 
 
-
-
-
-
-
-
-
-
-# In[ ]:
-
-
-
