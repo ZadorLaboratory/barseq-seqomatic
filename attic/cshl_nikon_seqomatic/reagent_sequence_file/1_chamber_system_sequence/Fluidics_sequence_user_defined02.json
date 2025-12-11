@@ -1,0 +1,24 @@
+[
+    {
+        "unit_volume": 2,
+        "source": "1",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "Incorporation Buffer",
+        "device": "pump",
+        "process": "import",
+        "pump_port": "batch_reagents"
+    },
+    {
+        "unit_volume": 2,
+        "source": "null",
+        "speed_code": 26,
+        "time": "null",
+        "temperature": "null",
+        "Solution name": "Incorporation Buffer",
+        "device": "pump",
+        "process": "export",
+        "pump_port": "chamber1"
+    }
+]
