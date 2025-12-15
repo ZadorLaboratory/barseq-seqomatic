@@ -44,19 +44,64 @@ class Syringe_Pump():
 
     def disconnect_pump(self):
         self.pump.close()
+
     def check_pump_status(self):
+        error_descriptions = {
+                            0: "No Error",
+                            1: "Initialization Error",
+                            2: "Invalid Command", 
+                            3: "Invalid Operand",
+                            7: "Device Not Initialized",
+                            8: "Invalid Valve Configuration",
+                            9: "Plunger Overload",
+                            10: "Valve Overload",
+                            11: "Plunger Move Not Allowed",
+                            12: "Extended Error Present",
+                            13: "NVRAM Access Failure",
+                            14: "Command Buffer Empty or Not Ready",
+                            15: "Command Buffer Overflow"
+                        }
         time.sleep(5)
         command = f"/1Q\r"
         ready_bit = 0
-        while ready_bit == 0:
-            self.pump.write(command.encode())
-            time.sleep(2)
-            if self.pump.in_waiting > 0:
-                response = self.pump.read(self.pump.in_waiting)
-                for byte in response:
-                    if (byte & 0b11010000) == 0b01000000:
-                        ready_bit = (byte >> 5) & 0x01
-                        print(ready_bit)
+
+        
+        max_retries=3
+        check=0
+        while True:
+            if check==0:
+                self.pump.write(command.encode())
+                time.sleep(2)
+                if self.pump.in_waiting > 0:
+                    response = self.pump.read(self.pump.in_waiting)           
+                    for byte in response:
+                        if (byte & 0b11010000) == 0b01000000:
+                            ready_bit = (byte >> 5) & 0x01
+                    status_byte = response[2]
+                    error_code = status_byte & 0x0F
+                    if ready_bit == 1 and error_code == 0:
+                            print("Pump is ready for operation")
+                            return True
+                    elif ready_bit == 0 and error_code == 0:
+                            print("Pump is busy, waiting...")
+                            continue  
+                    else:
+                        error_msg = error_descriptions.get(error_code, f"Unknown error: {error_code}")
+                        print(f"ERROR: {error_msg}")
+                        check=1
+                        continue    
+            else:
+                continue
+        
+        #while ready_bit == 0:
+        #    self.pump.write(command.encode())
+        #    time.sleep(2)
+        #    if self.pump.in_waiting > 0:
+        #        response = self.pump.read(self.pump.in_waiting)
+        #        for byte in response:
+        #            if (byte & 0b11010000) == 0b01000000:
+        #                ready_bit = (byte >> 5) & 0x01
+        #                print(ready_bit)
 
     def config_pump(self):
         self.set_path("waste")
