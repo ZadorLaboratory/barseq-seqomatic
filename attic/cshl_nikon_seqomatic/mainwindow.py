@@ -10,7 +10,7 @@ import os
 
 
 mainwindow = Log_window.mainwindow
-my_widges = window_widgets(mainwindow=mainwindow,path=os.getcwd())
+my_widges = window_widgets( mainwindow=mainwindow, path=os.getcwd())
 
 ##automatiob tab area
 my_widges.work_path_lb_auto.grid(row=3, column=0, padx=15,sticky="w")

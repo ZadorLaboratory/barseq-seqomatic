@@ -1,0 +1,22 @@
+name:  simpletkapp
+channels:
+ - conda-forge
+ - bioconda
+ - nodefaults
+ 
+dependencies:
+  - python=3.13
+  - imageio
+  - ipython
+  - jupyter
+  - numpy
+  - opencv
+  - pillow
+  - pip
+  - pycromanager
+  - pyqtgraph
+  - pyserial
+  - scikit-image
+  - scipy
+  - tifffile
+  - tk
