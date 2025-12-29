@@ -3,10 +3,6 @@
 #   https://nazmul-ahsan.medium.com/how-to-organize-multi-frame-tkinter-application-with-mvc-pattern-79247efbb02b
 #
 #
-#
-#
-#
-#
 import argparse
 import logging
 import os
@@ -16,20 +12,12 @@ import time
 
 from configparser import ConfigParser
 
-
-import tkinter as tk
-from tkinter import ttk, Button, IntVar, StringVar, filedialog, messagebox, scrolledtext 
-
 # custom application imports
 gitpath=os.path.expanduser("~/git/barseq-seqomatic/seqomatic")
 sys.path.append(gitpath)
 
 from frontend import *
 from utils import *
-
-
-
-
 
 if __name__ == '__main__':
     FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
@@ -69,15 +57,9 @@ if __name__ == '__main__':
     cp.read(args.config)
     cdict = format_config(cp)
     logging.debug(f'Running with config. {args.config}: {cdict}')
-
     
-    mainwindow = MainWindow()
-    wwidgets = WindowWidgets(mainwindow=mainwindow, 
-                             tkapp=mainwindow.mainwindow, 
-                             path=os.getcwd())
-    wwidgets.set_widget_state()
-
-    mainwindow.mainwindow.mainloop()
-    
+    app = GUI()
+    app.root.mainloop()
+   
 
  

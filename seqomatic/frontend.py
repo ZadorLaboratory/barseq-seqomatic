@@ -6,6 +6,7 @@ Description: Seqomatic Tk front end GUI application.
 # system imports
 import copy
 import json
+import logging
 import math
 import os
 import shutil
@@ -40,50 +41,14 @@ gitpath=os.path.expanduser("~/git/barseq-seqomatic/seqomatic")
 sys.path.append(gitpath)
 
 from utils import *
+from backend import Backend
 
 
-####################################################
-#
-#                  common util functions
-#  
-####################################################
-
-
-def get_time():
-    time_now = timezone('US/Pacific')
-    time = str(datetime.now(time_now))[0:19] + "\n"
-    return time
-
-def get_date():
-    time_now = timezone('US/Pacific')
-    date = str(datetime.now(time_now))[0:10]
-    return date
-
-def create_folder_file(pos_path,name):
-    if not os.path.exists(os.path.join(pos_path,name)):
-        os.makedirs(os.path.join(pos_path,name))
-
-def denoise(x):
-    x[x<np.percentile(x, 85)]=0
-    return x
-
-def hattop_convert(x):
-    filterSize = (10, 10)
-    kernel=cv2.getStructuringElement(cv2.MORPH_RECT, filterSize)
-    return cv2.morphologyEx(x, cv2.MORPH_TOPHAT, kernel)
-
-def ind2sub(array_shape, ind):
-    # Gives repeated indices, replicates matlabs ind2sub
-    cols = (ind.astype("int32") // array_shape[0])
-    rows = (ind.astype("int32") % array_shape[0])
-    return (rows, cols)
-
-
-####################################################
+#############################################################
 #
 #                  common GUI functions/constants
 #  
-####################################################
+#############################################################
 
 COLOR_ARRAY=np.array([[0,4,4],[1.5,1.5,0],[1,0,1],[0,0,1.5]])
 
@@ -96,37 +61,42 @@ class widget_attr:
     BLACK_COLOR='#0a0000'
     YELLOW_COLOR="#e0c80b"
 
-    #normal_edge=3
-    #disable_edge = 0.9
-    #normal_color = '#0f0201'
-    #disable_color = '#bab8b8'
-    #warning_color='#871010'
-    #black_color='#0a0000'
-    #yellow_color="#e0c80b"
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END='\033[0m'
 
-def clear_canvas(canvas):
-    for item in canvas.get_tk_widget().find_all():
-       canvas.get_tk_widget().delete(item)
 
-
-####################################################
-#
-#                  was logwindow.py
-#  
-####################################################
-
-class MainWindow():        
-        
+class GUI():
+    '''
+    Top-level GUI code. 
+    See: https://stackoverflow.com/questions/66249107/optimal-tkinter-file-structure
+    root = master = mainwindow
+    
+    Key refs:
+    GUI.frame (top-level frame)
+    
+    
+    '''        
     def __init__(self, cp=None):
 
-        self.mainwindow = tk.Tk()      
-        self.mainwindow.title("Seq-o-Matic")
-        self.mainwindow.geometry("1500x800+100+100")
+        self.backend = Backend(self)
+        self.root = tk.Tk()      
+        self.root.title("Seq-o-Matic")
+        self.root.geometry("1500x800+100+100")
         self.color_array = COLOR_ARRAY
-        self.frame=tk.Frame(self.mainwindow, bg=self.mainwindow.cget('bg'))
+        
+        self.frame= tk.Frame(self.root, bg=self.root.cget('bg'))
         self.frame.grid(row=0, column=1, sticky="nsew")
         img = tk.PhotoImage( file=os.path.join( get_resource_dir(), 'LOGO.png'))
-        self.mainwindow.iconphoto(False, img)
+        self.root.iconphoto(False, img)
         self.warning_stw = tk.scrolledtext.ScrolledText(
             master=self.frame,
             wrap=tk.WORD,
@@ -157,6 +127,7 @@ class MainWindow():
                                    width=15,
                                    fg=widget_attr.BLACK_COLOR, 
                                    font=("Arial", 10))
+        
         self.warning_lb.grid(row=0, column=0,pady=3,padx=3)
         
         self.liveview_lb = tk.Label(self.frame, 
@@ -262,11 +233,6 @@ class MainWindow():
         plt.close(self.livefigure)
 
 
-
-
-
-
-       
 
 ####################################################
 #
@@ -659,7 +625,7 @@ class WindowWidgets:
 
     def set_widget_state(self):
         ##automation tab area
-        self.work_path_lb_auto.grid(row=3, column=0, padx=15,sticky="w")
+        self.work_path_lb_auto.grid(row=3, column=0, padx=15, sticky="w")
         self.work_path_field_auto.grid(row=3, column=3, padx=15, sticky="w")
         self.browse_btn_auto.grid(row=3, column=4, padx=15, sticky="w")
         self.exp_btn_auto.grid(row=3, column=7, padx=15, sticky="w")
@@ -2328,11 +2294,10 @@ def set_windowwidgets(widgets):
     widgets.tile_btn.grid(row=0, column=2, padx=10, pady=10)
     widgets.max_btn.grid(row=0, column=3, padx=10, pady=10)
     widgets.cancel_image_btn.grid(row=0, column=4, padx=10, pady=10)
-   
-if __name__ == '__main__':
-    tkapp = tk.Tk()
-    mainwindow = MainWindow(mainwindow=tkapp)
-    wwidgets = WindowWidgets( mainwindow=mainwindow.mainwindow, path=os.getcwd())
-    #set_windowwidgets(wwidgets)
-    mainwindow.mainwindow.mainloop()
+
+
+def clear_canvas(canvas):
+    for item in canvas.get_tk_widget().find_all():
+       canvas.get_tk_widget().delete(item)
+
  

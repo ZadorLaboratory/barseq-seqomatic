@@ -1,10 +1,6 @@
 """
 Author: Aixin Zhang
 Description: Seq_o_Matics main system: Fluidics exchange system
-
-"""
-"""
-Author: Aixin Zhang
 Description: Seq_o_Matics main system: Imaging system
 
 """
@@ -20,7 +16,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor, wait
 from pytz import timezone
 from datetime import datetime
-#from typing import List
 
 import cv2
 
@@ -38,65 +33,12 @@ from device.Selector_2025 import ElveflowMux
 
 warnings.filterwarnings("ignore")
 
-####################################################
-#
-#                  common util functions
-#  
-####################################################
+class Backend():
 
-def get_file_name(path, kind):
-    os.chdir(path)
-    files = []
-    for file in os.listdir():
-        if file.endswith(kind):
-            files.append(file)
-    return files
-
-def get_time():
-    time_now = timezone('US/Pacific')
-    time = str(datetime.now(time_now))[0:19] + "\n"
-    return time
-
-def sort_by(string):
-    pos = np.array([int(s[s.find('Pos') + 3:s.find('.tif')]) for s in string])
-    rearrange = np.argsort(pos)
-    string = [string[i] for i in rearrange]
-    return string
-
-def clean_space(directory):
-    for item in os.listdir(directory):
-        if os.path.isdir(os.path.join(directory, item)):
-            shutil.rmtree(os.path.join(directory, item))
-
-
-####################################################
-#
-#                  common GUI functions/constants
-#  
-####################################################
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END='\033[0m'
-
-def denoise(x):
-    x[x<np.percentile(x, 85)]=0
-    return x
-
-def hattop_convert(x):
-    filterSize = (10, 10)
-    kernel=cv2.getStructuringElement(cv2.MORPH_RECT, filterSize)
-    return cv2.morphologyEx(x, cv2.MORPH_TOPHAT, kernel)
-
-
+    def __init__(self, gui):
+        self.gui = gui
+        
+     
 
 
 class FluidicSystem():
@@ -154,7 +96,6 @@ class FluidicSystem():
                                'Fluidics_sequence_flush_all_no_chamber.json'), 'r') as r:
             self.FLUSH_REAGENTS_SEQUENCE = json.load(r)
 
-
     def write_log(self, txt):
         f = open(os.path.join(self.pos_path, "log.txt"), "a")
         f.write(txt)
@@ -180,7 +121,6 @@ class FluidicSystem():
     def disconnect_heater(self):
         self.Heatingdevice.disconnect_heater_group()
   
-
     def connect_syringe_pump(self):
         self.syringe_pump.connect_pump()
           
@@ -190,9 +130,6 @@ class FluidicSystem():
     def config_selector(self):
         self.selector = ElveflowMux(self.selector_cfg)
         self.selector.config_selector()
-
-        
-
 
     def connect_selector(self):
         self.selector.connect()
@@ -211,7 +148,7 @@ class FluidicSystem():
         self.cycle_done = 1
         self.start_image=0
 
-    def setSource(self, selector_reagent,pump_reagent):
+    def setSource(self, selector_reagent, pump_reagent):
         if selector_reagent not in ["null", "", '','null',None]:
             self.selector.set_path(selector_reagent)
             txt=get_time()+"set Elveflow distributor to "+selector_reagent+"\n"
@@ -517,7 +454,6 @@ class FluidicSystem():
 
         return protocol
 
-
             
 def single_createtiles(df,imwidth,overlap,pixelsize):
     tileconfig = [None] * (math.floor(len(df) / 4))
@@ -598,12 +534,6 @@ class scope_constant():
     z_dir=1
 
 
-def get_time():
-    time_now = timezone('US/Pacific')
-    time = str(datetime.now(time_now))[0:19] + "\n"
-    return time
-
-
 def get_col(image_file_name):
     start = image_file_name.find('_', 7) + 1
     end = start + 3
@@ -615,14 +545,12 @@ def get_row(image_file_name):
     end = start + 3
     return int(image_file_name[start:end])
 
-
 def copy_dic(pos_path, focusfolder, dicfolder):
     directory = os.listdir(os.path.join(pos_path, focusfolder))
     for i in directory:
         if ".tif" in i:
             shutil.move(os.path.join(pos_path, focusfolder, i),
                         os.path.join(pos_path, dicfolder, i))
-
 
 def ind2sub(array_shape, ind):
     # Gives repeated indices, replicates matlabs ind2sub
@@ -693,8 +621,7 @@ def get_position(pos):
         return None
 
 
-
-class scope():
+class Microscope():
     def __init__(self, cfg, 
                        pos_path, 
                        slice_per_slide, 
@@ -1618,8 +1545,6 @@ class scope():
         print(file_number_disk)
         print(file_count)
         print(cmd)
-
-
 
 
     def pos_to_csv(self,cycle):
