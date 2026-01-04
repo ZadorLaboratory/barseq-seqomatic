@@ -33,14 +33,9 @@ from device.Selector_2025 import ElveflowMux
 
 warnings.filterwarnings("ignore")
 
-class Backend():
 
-    def __init__(self, gui):
-        self.gui = gui
         
      
-
-
 class FluidicSystem():
 
     def __init__(self, system_path, pos_path, slide_heater_dictionary):

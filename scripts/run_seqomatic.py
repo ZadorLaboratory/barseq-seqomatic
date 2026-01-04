@@ -10,13 +10,11 @@ import pprint
 import sys
 import time
 
-from configparser import ConfigParser
-
 # custom application imports
 gitpath=os.path.expanduser("~/git/barseq-seqomatic/seqomatic")
 sys.path.append(gitpath)
 
-from frontend import *
+from frontend import Seqomatic
 from utils import *
 
 if __name__ == '__main__':
@@ -35,15 +33,7 @@ if __name__ == '__main__':
                         action="store_true", 
                         dest='verbose', 
                         help='verbose logging')
-
-    parser.add_argument('-c','--config', 
-                        metavar='config',
-                        required=False,
-                        default=os.path.expanduser('~/git/barseq-seqomatic/etc/seqomatic.conf'),
-                        type=str, 
-                        help='config file.')
     
-      
     args= parser.parse_args()
     
     if args.debug:
@@ -53,13 +43,9 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.INFO)   
         loglevel = 'info'
     
-    cp = ConfigParser()
-    cp.read(args.config)
-    cdict = format_config(cp)
-    logging.debug(f'Running with config. {args.config}: {cdict}')
     
-    app = GUI()
-    app.root.mainloop()
+    app = Seqomatic()
+    app.mainloop()
    
 
  

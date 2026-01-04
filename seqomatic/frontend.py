@@ -28,7 +28,8 @@ import pandas as pd
 # sub-modules not importable via import as name
 # but once imported, can be called via tk namespace, e.g. tk.Button
 import tkinter as tk
-from tkinter import ttk, Button, IntVar, StringVar, filedialog, messagebox, scrolledtext 
+from tkinter import ttk
+#from tkinter import ttk, Button, IntVar, StringVar, filedialog, messagebox, scrolledtext 
 
 # external selective imports
 from matplotlib import pyplot as plt
@@ -74,29 +75,45 @@ class bcolors:
     END='\033[0m'
 
 
-class GUI():
+class Seqomatic(tk.Tk):
     '''
-    Top-level GUI code. 
+    Top-level front-end GUI code. 
     See: https://stackoverflow.com/questions/66249107/optimal-tkinter-file-structure
-    root = master = mainwindow
-    
-    Key refs:
-    GUI.frame (top-level frame)
-    
-    
+   
     '''        
-    def __init__(self, cp=None):
-
-        self.backend = Backend(self)
-        self.root = tk.Tk()      
-        self.root.title("Seq-o-Matic")
-        self.root.geometry("1500x800+100+100")
+    def __init__(self):
+        super.__init__()
+        self.handlers = EventHandlers(self)       
+        self.title("Seq-o-Matic")
+        self.geometry("1500x800+100+100")
         self.color_array = COLOR_ARRAY
-        
+        img = tk.PhotoImage( file=os.path.join( get_resource_dir(), 'LOGO.png'))
+        self.iconphoto(False, img)        
+
         self.frame= tk.Frame(self.root, bg=self.root.cget('bg'))
         self.frame.grid(row=0, column=1, sticky="nsew")
-        img = tk.PhotoImage( file=os.path.join( get_resource_dir(), 'LOGO.png'))
-        self.root.iconphoto(False, img)
+
+
+
+
+
+
+
+
+
+class EventHandlers():
+
+    def __init__(self, gui):
+        # gui is top-level Tk object.
+        self.gui = gui
+
+
+
+
+
+class Ignore(object):
+        
+    def __init__(self):
         self.warning_stw = tk.scrolledtext.ScrolledText(
             master=self.frame,
             wrap=tk.WORD,
@@ -182,37 +199,38 @@ class GUI():
         self.notification_stw.grid(row=4, column=0)
         self.warning_stw.grid(row=1, column=0)
 
+
     def update_error(self, txt):
         self.warning_stw.insert(END, txt, 'warning')
 
-    def clear_error():
+    def clear_error(self):
         self.warning_stw.delete('1.0', tk.END)
     
-    def clear_log():
+    def clear_log(self):
         self.notification_stw.delete('1.0', tk.END)
     
-    def add_highlight_from_scope(txt):
+    def add_highlight_from_scope(self, txt):
         self.notification_stw.insert(tk.END, txt, 'highlight_from_scope')
     
-    def add_device_information(txt):
+    def add_device_information(self, txt):
         self.notification_stw.insert(tk.END, txt, 'device_highlight_from_device')
     
-    def add_fluidics_status(txt):
+    def add_fluidics_status(self, txt):
         self.notification_stw.insert(tk.END, txt, 'status_highlight_from_fluidics')
     
-    def add_fluidics_reagent(txt):
+    def add_fluidics_reagent(self, txt):
         self.notification_stw.insert(tk.END, txt, 'reagent_highlight_from_fluidics')
     
-    def add_highlight_mainwindow(txt):
+    def add_highlight_mainwindow(self, txt):
         self.notification_stw.insert(tk.END, txt, 'highlight_from_mainwindow')
     
-    def update_process_bar(i):
+    def update_process_bar(self,i):
         self.progressbar1['value']=i
     
-    def update_process_label(txt):
+    def update_process_label(self, txt):
         self.process_label['text']=txt
     
-    def draw_liveview(img):
+    def draw_liveview(self, img):
         self.plot1 = self.livefigure.add_subplot(111)
         self.plot1.imshow( img[500:1200, 500:1200, :])
         self.plot1.get_xaxis().set_visible(False)
@@ -220,7 +238,7 @@ class GUI():
         self.canvas_live.draw()
         plt.close(self.livefigure)
     
-    def clear_liveview_canvas():
+    def clear_liveview_canvas(self):
         self.livefigure = plt.Figure( figsize=(4, 4), dpi=100)
         self.livefigure.subplots_adjust(left=0.01, 
                                         bottom=0.01, 
@@ -706,6 +724,7 @@ class WindowWidgets:
         self.note_lb.grid(row=0, column=0,padx=5,pady=3)
         self.note_stw.grid(row=0, column=1,padx=5,pady=3)
         self.note_btn.grid(row=0, column=2,padx=5,pady=3)
+
         ## manual tab area
         self.work_path_lb_manual.grid(row=0, column=0, padx=10,sticky="w")
         self.work_path_field_manual.grid(row=0, column=10, padx=10, sticky="w")
