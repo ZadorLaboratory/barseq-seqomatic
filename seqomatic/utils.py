@@ -2,14 +2,13 @@ import logging
 import os 
 import pprint
 
-from configparser import ConfigParser
+# system selective imports
+from datetime import datetime
+from pytz import timezone
 
-
-####################################################
-#
+###############################################################################
 #                  common util functions
-#  
-####################################################
+###############################################################################
 
 def create_folder_file(pos_path,name):
     if not os.path.exists(os.path.join(pos_path,name)):
@@ -24,15 +23,9 @@ def denoise(x):
     return x
 
 def get_date():
-    time_now = timezone('US/Pacific')
+    time_now = timezone('US/New York')
     date = str(datetime.now(time_now))[0:10]
     return date
-
-def get_default_config():
-    dc = os.path.expanduser('~/git/barseq-seqomatic/etc/seqomatic.conf')
-    cp = ConfigParser()
-    cp.read(dc)
-    return cp
 
 def get_file_name(path, kind):
     os.chdir(path)
@@ -43,7 +36,7 @@ def get_file_name(path, kind):
     return files
 
 def get_time():
-    time_now = timezone('US/Pacific')
+    time_now = timezone('US/New York')
     time = str(datetime.now(time_now))[0:19] + "\n"
     return time
 
@@ -81,7 +74,6 @@ def clean_space(directory):
         if os.path.isdir(os.path.join(directory, item)):
             shutil.rmtree(os.path.join(directory, item))
 
-
 def get_resource_dir():
     '''
     Assume running from git for now. Go up two from script, and down to 'resource'
@@ -95,10 +87,3 @@ def get_resource_dir():
     return rdir
 
 
-def format_config(cp):
-    '''
-        Pretty print ConfigParser to standard string for logging.  
-    '''
-    cdict = {section: dict(cp[section]) for section in cp.sections()}
-    s = pprint.pformat(cdict, indent=4)
-    return s
