@@ -69,17 +69,18 @@ class bcolors:
 
 ######################################################
 #              GUI Classes
+#              Main Application (controller) 
+# 
 ######################################################
 
 #
 # https://github.com/clear-code-projects/tkinter-complete/tree/main 
 # 
 
-class Seqomatic(tk.Tk):
+class SeqomaticGUI(tk.Tk):
     '''
-    Top-level front-end GUI code. 
+    Top-level front-end GUI code.  
     See: https://stackoverflow.com/questions/66249107/optimal-tkinter-file-structure
-   
     '''        
     def __init__(self):
         super().__init__()       
@@ -87,15 +88,18 @@ class Seqomatic(tk.Tk):
         self.geometry("1500x800+100+100")
         self.color_array = COLOR_ARRAY
         img = tk.PhotoImage( file=os.path.join( get_resource_dir(), 'LOGO.png'))
-        self.iconphoto(False, img)        
+        self.iconphoto(False, img) 
+
+        # Global controller object
+        self.controller = SeqomaticController()
 
         # Top-level tabbed notebook
         self.notebook = tk.ttk.Notebook(self)
         #self.notebook.grid(row=0, column=0, sticky="nsew")
         self.notebook.pack(expand=True, fill='both')
-        auto_frame = AutoTabFrame(self)
+        auto_frame = AutoTabFrame(self, self.controller)
         auto_frame.pack(fill='both', expand=True)
-        manual_frame = ManualTabFrame(self)
+        manual_frame = ManualTabFrame(self, self.controller)
         manual_frame.pack(fill='both', expand=True)
         self.auto_image = tk.PhotoImage(file=os.path.join( get_resource_dir() , "auto_logo.png"))
         self.manual_image = tk.PhotoImage(file=os.path.join( get_resource_dir() , "hand.png"))       
@@ -104,61 +108,64 @@ class Seqomatic(tk.Tk):
 
 
 ###############################################################################
-#           Main window Tabs, sub-frames
+#           Main window Tabs/Sub-Frames
 #           These do NOT self-layout.
 #           Add all widgets here.
 ###############################################################################
 
 class AutoTabFrame(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(borderwidth=1, relief='groove')
-        self.cf = ConfigFrame(self)
+        self.cf = ConfigFrame(self, self.controller)
         self.cf.pack(side='left', expand = True, fill = 'both')        
         
-        wf =  WorkdirFrame(self.cf)
-        #pf =  ProcessFrame(self.cf)
+        wf =  WorkdirFrame(self.cf, self.controller)
+        pf =  ProcessFrame(self.cf, self.controller)
 
-        self.lf = LogFrame(self)
+        self.lf = LogFrame(self, self.controller)
         self.lf.pack(side='left', expand = True, fill = 'both')
-        ef = WarningFrame(self.lf)
+        ef = WarningFrame(self.lf, self.controller)
 
 
 class ManualTabFrame(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(borderwidth=1, relief='groove')
-        self.cf = ConfigFrame(self)
+        self.cf = ConfigFrame(self, controller)
         self.cf.pack(side='left', expand = True, fill = 'both')        
-        wf =  WorkdirFrame(self.cf)
-        pf = ProcessFrame(self.cf)
+        wf =  WorkdirFrame(self.cf, self.controller)
+        pf = ProcessFrame(self.cf, self.controller)
 
-        self.lf = LogFrame(self)
+        self.lf = LogFrame(self, controller)
         self.lf.pack(side='left', expand = True, fill = 'both') 
-        ef = WarningFrame(self.lf)
-        #nf = NotificationFrame(self.lf)
-        #lv = LiveViewFrame(self.lf)
-
+        ef = WarningFrame(self.lf, self.controller)
+        #nf = NotificationFrame(self.lf, self.controller)
+        #lv = LiveViewFrame(self.lf, self.controller)
 
 
 class ConfigFrame(ttk.Frame):
     '''
     Contains widgets so configure and run processing.  
     '''
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(borderwidth=1, relief='groove')
 
 class LogFrame(ttk.Frame):
     '''
     Contains log output information and live views.  
     '''
-    def __init__(self, parent):
-        super().__init__(parent) 
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller 
         self.configure(borderwidth=1, relief='groove')
 
 ###############################################################################
-#                   Widgets
+#                   Self-Contained Widgets
 #               These self-layout within their frames. 
 ###############################################################################
 
@@ -166,25 +173,27 @@ class WorkdirFrame(ttk.Frame):
     '''
     Section 1. Choose work directory. 
     '''
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(borderwidth=1, relief='groove')
         self.lbf = ttk.LabelFrame(self, text="Section 1 Choose work directory", width=600)
         self.lbf.grid(row=0, column=0, padx=1, pady=1, sticky='n')
         
-        self.path = tk.StringVar()
-        self.work_path = tk.Label(self.lbf, 
+        self.controller.work_path = tk.StringVar()
+        self.work_path_lb = tk.Label(self.lbf, 
                                         text="Select your work directory:", 
                                         borderwidth=1, 
                                         relief="flat", 
                                         width=20,
                                         fg=widget_attr.BLACK_COLOR, 
                                         font=("Arial", 10) )
-        self.work_path.grid(row=0,column=0)
+        self.work_path_lb.grid(row=0,column=0)
 
         self.work_path_field = tk.Entry(self.lbf, 
                                          relief="groove", 
                                          width=43)
+        
         self.work_path_field.grid(row=0, column=1)
 
         self.browse_btn = tk.Button(self.lbf, 
@@ -201,28 +210,28 @@ class WorkdirFrame(ttk.Frame):
                                       fg=widget_attr.NORMAL_COLOR,
                                       command=self.exp_btn_handler)
         self.exp_btn.grid(row=0,column=3)
-        self.grid(row=0, column=0, sticky='nsew', padx=5, pady=5 )
+        self.pack(fill='x')
 
     def browse_handler(self):
         logging.debug(f'browse_button...')
-        self.tempdir = self.search_for_file_path()
-        self.path.set(self.tempdir)
-        self.work_path_field.config(textvariable=self.path)
+        tempdir = self.search_for_file_path()
+        self.controller.work_path.set(tempdir)
+        self.work_path_field.config( textvariable=self.controller.work_path )
     
     def search_for_file_path(self):
-        self.currdir = os.getcwd()
-        self.tempdir = tk.filedialog.askdirectory(parent=self, 
-                                               initialdir=self.currdir, 
-                                               title='Please select a directory')
-        if len(self.tempdir) > 0:
-            print("You chose: %s" % self.tempdir)
-        return self.tempdir
+        currdir = os.getcwd()
+        tempdir = tk.filedialog.askdirectory(parent=self, 
+                                                   initialdir=currdir, 
+                                                   title='Please select a directory')
+        if len(tempdir) > 0:
+            print("You chose: %s" % tempdir)
+        return tempdir
     
     def exp_btn_handler(self):
-        if self.work_path_field.get() == "":
+        if self.controller.work_path.get() == "":
             tk.messagebox.showinfo(title="Miss Input", message="Please fill the work dirctory first!")
         else:
-            work_path = self.work_path_field.get()
+            work_path = self.controller.work_path.get()
             ExperimentProfile( work_path)
 
 
@@ -230,14 +239,17 @@ class ProcessFrame(ttk.Frame):
     '''
     Section 2. Fill process details 
     '''
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
         self.configure(borderwidth=1, relief='groove')
         self.lbf = tk.LabelFrame(self, 
                                  text="Section 2 Fill process details",
                                  width=600)
-        self.lbf.grid(row=0, column=0, padx=3, pady=3,sticky="n")
+        #self.lbf.pack(side=tk.LEFT)
+        self.lbf.grid(row=0,column=0)
 
+        # Row One
         self.slice_per_slide_lb = tk.Label(self.lbf, 
                                                 text="Slice per slide:", 
                                                 bd=1, 
@@ -245,49 +257,73 @@ class ProcessFrame(ttk.Frame):
                                                 width=15,
                                                 fg=widget_attr.BLACK_COLOR, 
                                                 font=("Arial", 10))
+        self.slice_per_slide_lb.grid(row=0,column=0)
         
         self.slice_number_field = tk.Entry(self.lbf, 
                                            relief="groove", width=10)
+        self.slice_number_field.grid(row=0,column=1)
 
         self.mock_alignment = tk.IntVar()
         self.mock_alignment.set(0)
         self.mock_alignment_cbox = tk.Checkbutton(self.lbf, text="Skip Alignment",
                                                fg=widget_attr.NORMAL_COLOR, variable=self.mock_alignment, onvalue=1,
                                                offvalue=0)
+        self.mock_alignment_cbox.grid(row=0,column=2)
 
-        self.cycle_number = tk.Spinbox(self.lbf, from_=0, to=50, state="readonly", width=5)
 
 
         self.build_own_cycle_sequence_value = tk.IntVar()
         self.build_own_cycle_sequence_value.set(0)
         self.build_own_cycle_sequence = tk.Checkbutton(self.lbf, 
-                                                       text="Use protocol in work directory",
+                                                       text="Use existing protocol",
                                                     fg=widget_attr.NORMAL_COLOR,
                                                     variable=self.build_own_cycle_sequence_value,
                                                     onvalue=1,
                                                     offvalue=0)
+        self.build_own_cycle_sequence.grid(row=0,column=3)
+
+
+        self.current_cycle_lb = tk.Label(self.lbf, 
+                                                text="Current Cycle:", 
+                                                bd=1, 
+                                                relief="flat", 
+                                                width=15,
+                                                fg=widget_attr.BLACK_COLOR)
+        self.current_cycle_lb.grid(row=0,column=4)
+
+
 
         self.current_c = tk.StringVar()
         self.current_cbox = tk.ttk.Combobox(self.lbf, 
-                                            textvariable=self.current_c, width=8)
+                                            textvariable=self.current_c, 
+                                            width=8)
         self.current_cbox['value'] = ['geneseq', 'hyb', 'bcseq']
         self.current_cbox['state'] = "readonly"
+        self.current_cbox.grid(row=0,column=5)
+
+
+        self.cycle_number = tk.Spinbox(self.lbf, from_=0, to=50, state="readonly", width=5)
+        self.cycle_number.grid(row=0,column=6)
 
         self.OR_lb = tk.Label(self.lbf, text="OR", bd=1, relief="flat", width=3,
-                           fg=widget_attr.BLACK_COLOR, font=("Arial", 10))
-
+                           fg=widget_attr.BLACK_COLOR,)
+        self.OR_lb.grid(row=0,column=7)
+        
         self.recipe_btn = tk.Button(self.lbf, 
                                     text="Create Protocol", 
                                     command=self.recipe_btn_handler,
                                     bd=widget_attr.NORMAL_EDGE, 
                                     fg=widget_attr.NORMAL_COLOR)
+        self.recipe_btn.grid(row=0,column=8)
+
         self.assign_heater_btn = tk.Button(self.lbf, 
                                            text="Assign Heaters", 
                                            command=self.assign_heater,
                                            bd=widget_attr.NORMAL_EDGE, 
                                            fg=widget_attr.NORMAL_COLOR)
+        self.assign_heater_btn.grid(row=0,column=9)
 
-
+        # Row Two
         self.change_pixel_value = tk.IntVar()
         self.change_pixel_value.set(0)
         self.change_pixel = tk.Checkbutton(self.lbf, 
@@ -295,11 +331,13 @@ class ProcessFrame(ttk.Frame):
                                            fg=widget_attr.NORMAL_COLOR, variable=self.change_pixel_value, onvalue=1,
                                            offvalue=0,
                                            command=self.change_pixel_handler,)
+        self.change_pixel.grid(row=1,column=0)
 
         self.pixel_size = tk.StringVar()
         self.pixel_size.set("0.33")
         self.pixel_size_field = tk.Entry(self.lbf, relief="groove", width=6, textvariable=self.pixel_size)
         self.pixel_size_field.config(state=tk.DISABLED)
+        self.pixel_size_field.grid(row=1,column=1)
 
         self.change_server_value = tk.IntVar()
         self.change_server_value.set(0)
@@ -310,54 +348,65 @@ class ProcessFrame(ttk.Frame):
                                               onvalue=1,
                                               offvalue=0,
                                               command=self.change_server )
+        self.change_server_auto_cb.grid(row=1,column=2)
 
         self.server_account_lb = tk.Label(self.lbf, text="server account:", bd=1, relief="flat", width=10,
-                                       fg=widget_attr.DISABLE_COLOR, font=("Arial", 10))
+                                       fg=widget_attr.DISABLE_COLOR)
+        self.server_account_lb.grid(row=1,column=3)
+
         self.account = tk.StringVar()
         self.account.set("imagestorage")
-        self.account_field_auto = tk.Entry(self.lbf, relief="groove", width=15, textvariable=self.account)
-        self.account_field_auto.config(state=tk.DISABLED)
-
+        self.account_field = tk.Entry(self.lbf, relief="groove", width=15, textvariable=self.account)
+        self.account_field.config(state=tk.DISABLED)
+        self.account_field.grid(row=1,column=4)
 
         self.server_lb = tk.Label(self.lbf, text="server name:", bd=1, relief="flat", width=10,
-                               fg=widget_attr.DISABLE_COLOR, font=("Arial", 10))
+                               fg=widget_attr.DISABLE_COLOR)
+        self.server_lb.grid(row=1,column=5)
 
         self.server = tk.StringVar()
         self.server.set(r"N:\\")
-        self.server_field_auto = tk.Entry(self, relief="groove", width=20, textvariable=self.server)
-        self.server_field_auto.config(state=tk.DISABLED)
+        self.server_field = tk.Entry(self.lbf, relief="groove", width=20, textvariable=self.server)
+        self.server_field.config(state=tk.DISABLED)
+        self.server_field.grid(row=1,column=6)
 
         self.upload_aws_value = tk.IntVar()
         self.upload_aws_value.set(0)
-        self.upload_aws_auto = tk.Checkbutton(self, 
+        self.upload_aws = tk.Checkbutton(self.lbf, 
                                               text="upload to AWS", 
                                             fg=widget_attr.NORMAL_COLOR, 
                                             variable=self.upload_aws_value, 
                                             onvalue=1, 
                                             offvalue=0, 
-                                            command=self.upload_to_aws,)
-        
-        self.aws_account_lb_auto = tk.Label(self, text="AWS account:", bd=1, relief="flat", width=12,
-                                    fg=widget_attr.DISABLE_COLOR, font=("Arial", 10))
+                                            command=self.upload_to_aws)
+        self.upload_aws.grid(row=2,column=0)
+
+        self.aws_account_lb = tk.Label(self.lbf, text="AWS account:", bd=1, relief="flat", width=12,
+                                    fg=widget_attr.DISABLE_COLOR)
+        self.aws_account_lb.grid(row=2,column=1)
 
         self.aws = tk.StringVar()
-        self.aws_account_field_auto = tk.Entry(self, relief="groove", width=20, textvariable=self.aws)
-        self.aws_account_field_auto.config(state=tk.DISABLED)
+        self.aws_account_field = tk.Entry(self.lbf, relief="groove", width=20, textvariable=self.aws)
+        self.aws_account_field.config(state=tk.DISABLED)
+        self.aws_account_field.grid(row=2, column=2)
 
-        self.aws_password_lb_auto = tk.Label(self, text="AWS password:", bd=1, relief="flat", width=15,
-                                     fg=widget_attr.DISABLE_COLOR, font=("Arial", 10))
+        self.aws_password_lb = tk.Label(self.lbf, text="AWS password:", bd=1, relief="flat", width=15,
+                                     fg=widget_attr.DISABLE_COLOR)
+        self.aws_password_lb.grid(row=2, column=3)        
+        
         self.aws_pwd = tk.StringVar()
-        self.aws_pwd_field_auto = tk.Entry(self, relief="groove", width=20, textvariable=self.aws_pwd)
-        self.aws_pwd_field_auto.config(state=tk.DISABLED)
+        self.aws_pwd_field = tk.Entry(self.lbf, relief="groove", width=20, textvariable=self.aws_pwd)
+        self.aws_pwd_field.config(state=tk.DISABLED)
+        self.aws_pwd_field.grid(row=2, column=4)
 
-
-        self.info_btn_auto = tk.Button(self, 
+        # Row 3
+        self.info_btn = tk.Button(self.lbf, 
                                        text="Create Your Experiment",
                                        command=self.create_exp,
                                        bd=widget_attr.NORMAL_EDGE, 
                                        fg="#1473cc")
-        
-        self.grid(row=0, column=0, sticky='nsew', padx=5, pady=5 )
+        self.info_btn.grid(row=3, column=0)
+        self.pack(fill='x')
 
     def assign_heater(self):
         self.heater_popup = tk.Tk()
@@ -431,7 +480,7 @@ class ProcessFrame(ttk.Frame):
         self.slide_heater3.grid(row=2, column=2,padx=10, pady=10, sticky="nsew")
         self.slide_heater3.config(state=tk.DISABLED)
 
-        self.assign_heater_btn = Button(self.heater_popup, text="Confirm", command=self.assign_heater_to_slide,
+        self.assign_heater_btn = tk.Button(self.heater_popup, text="Confirm", command=self.assign_heater_to_slide,
                                bd=widget_attr.NORMAL_EDGE, fg="#1473cc")
         self.assign_heater_btn.grid(row=3,column=1,padx=10, pady=10, sticky="nsew")
 
@@ -443,7 +492,6 @@ class ProcessFrame(ttk.Frame):
 
     def assign_chamber3_heater(self):
             self.slide_heater3.config(state=tk.NORMAL)
-
 
     def assign_heater_to_slide(self):
         self.assigned_heater=1
@@ -485,10 +533,10 @@ class ProcessFrame(ttk.Frame):
         self.cancel = 0
         self.skip_alignment = self.mock_alignment.get()
         self.warning_stw.delete('1.0', tk.END)
-        if self.work_path_field_auto.get() == "":
+        if self.controller.work_path_field.get() == "":
             tk.messagebox.showinfo(title="Wrong Input", message="work directory can't be empty")
             return
-        self.pos_path = self.work_path_field_auto.get()
+        self.pos_path = self.controller.work_path_field.get()
         if not os.path.exists(os.path.join(self.pos_path, "temp.txt")):
             open(os.path.join(self.pos_path, "temp.txt"), 'w')
         if not os.path.exists(os.path.join(self.pos_path, "log.txt")):
@@ -521,10 +569,9 @@ class ProcessFrame(ttk.Frame):
         self.fluidics = FluidicSystem(system_path=self.system_path,pos_path=self.pos_path,slide_hearter_dictionary=self.heater_dict)
         self.all_autobtn_normal()
 
-
     def recipe_btn_handler(self):
-        self.pb = ProcessBuilder( parent_window=self )
-        self.pb.create_window( self.work_path_field_auto.get())
+        self.pb = ProcessBuilder(path=self.work_path_field.get())
+        #self.pb.create_window( )
 
     def upload_to_aws(self):
         if self.upload_aws_value.get() == 1:
@@ -728,8 +775,10 @@ class NotesFrame(ttk.Frame):
 
 
 class WarningFrame(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
+
         self.configure(borderwidth=1, relief='groove')
         self.warning_lb = tk.Label(self, 
                                    text="System warning", 
@@ -939,7 +988,7 @@ class ProcessBuilder(tk.Tk):
         self.recipe_list = [i[0:-5] for i in os.listdir(os.path.join( get_resource_dir(), "reagent_sequence_file")) ]
         self.recipe_list.extend(["imagecycle00", "imagecycle_geneseq", "imagecycle_bcseq", "imagecycle_hyb"])
         
-        self.dropdown = ttk.Combobox(self,width=35)
+        self.dropdown = ttk.Combobox(self, width=35)
         self.recipe_list = [i[0:-5] for i in os.listdir( os.path.join( get_resource_dir(),"reagent_sequence_file","3_chamber_system_sequence")) if (i not in ["Fluidics_sequence_flush_all.json","Fluidics_sequence_fill_all.json"]) and ("user_defined" not in i)]
         self.recipe_list.extend(["Fluidics_sequence_user_defined","imagecycle00", "imagecycle_geneseq", "imagecycle_bcseq", "imagecycle_hyb"])
         self.dropdown['values'] = self.recipe_list
@@ -1004,6 +1053,51 @@ class ProcessBuilder(tk.Tk):
         
 
 
+class SeqomaticController(object):
+    '''
+    TK-aware Controller for shared variables, global functions.
+
+    https://stackoverflow.com/questions/48510894/shared-data-between-frames-tkinter
+
+    Not really a full MVC controller, just a global variable holder. 
+    Could be wired up to transparently save to alternate backend/DB. But
+    currently just instance variables.  
+
+    '''
+    def __init__(self):
+
+        self.device_status = {
+            "syringe_pump_group": 0,
+            "selector_group": 0,
+            "heater_group": 0}
+        self.scale=1000 #unit ml to ul
+        self.assigned_heater=0
+
+
+    def __repr__(self):
+        '''
+        Print known native Python attributes. 
+        Also print found tk.Variable attributes. 
+        
+        for e in dir(f2):
+       x = getattr(f2, e)
+         if type(x) is  tkinter.StringVar :
+             print(f'{e} = yes')
+         else:
+             print(f'{e} = no')
+        
+        '''
+
+        s = 'Seqomatic state:'
+        s += f'device_status = {self.device_status}\n'
+        s += f'scale={self.scale}\n'
+        s += f'assigned_heater = {self.assigned_heater}\n'
+
+
+
+
+
+
 
 
 
@@ -1013,19 +1107,11 @@ class ProcessBuilder(tk.Tk):
 #
 ###############################################################################
 
-
-
-
-
 # was WindowWidgets.py
 class OldCode:
     def __init__(self, mainwindow, tkapp, path):
-        self.device_status = {
-            "syringe_pump_group": 0,
-            "selector_group": 0,
-            "heater_group": 0}
-        self.scale=1000 #unit ml to ul
-        self.assigned_heater=0
+        pass
+
 
     def check_sequence_handler(self):
         t1 = Thread(target=self.check_sequence)

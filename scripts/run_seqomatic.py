@@ -14,7 +14,7 @@ import time
 gitpath=os.path.expanduser("~/git/barseq-seqomatic/seqomatic")
 sys.path.append(gitpath)
 
-from frontend import Seqomatic
+from frontend import SeqomaticGUI
 from utils import *
 
 if __name__ == '__main__':
@@ -43,8 +43,7 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.INFO)   
         loglevel = 'info'
     
-    
-    app = Seqomatic()
+    app = SeqomaticGUI()
     app.mainloop()
    
 
