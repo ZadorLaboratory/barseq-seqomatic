@@ -23,7 +23,7 @@ def denoise(x):
     return x
 
 def get_date():
-    time_now = timezone('US/New York')
+    time_now = timezone('US/Eastern')
     date = str(datetime.now(time_now))[0:10]
     return date
 
@@ -36,7 +36,7 @@ def get_file_name(path, kind):
     return files
 
 def get_time():
-    time_now = timezone('US/New York')
+    time_now = timezone('US/Eastern')
     time = str(datetime.now(time_now))[0:19] + "\n"
     return time
 
