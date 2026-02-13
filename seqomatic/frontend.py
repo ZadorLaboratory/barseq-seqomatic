@@ -38,7 +38,7 @@ gitpath=os.path.expanduser("~/git/barseq-seqomatic/seqomatic")
 sys.path.append(gitpath)
 
 from utils import *
-#from backend import Backend
+from backend import Microscope
 
 #############################################################
 #                  common GUI functions/constants  
@@ -311,7 +311,8 @@ class SeqomaticController(object):
 
     def slice_per_slide_reformat(self):
         try:
-            a = self.slice_number_field.get()
+            a = self.controller.slice_per_slice.get()
+            logging.debug(f'slice_per_slice={a}')
             listOfChars = list()
             listOfChars.extend(a)
             num = [int(x) for x in listOfChars if x.isdigit()]
