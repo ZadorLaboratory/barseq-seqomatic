@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 import time
+from threading import Thread
 
 # external imports
 import cv2
@@ -55,21 +56,9 @@ class widget_attr:
     BLACK_COLOR='#0a0000'
     YELLOW_COLOR="#e0c80b"
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END='\033[0m'
-
 ######################################################
 #              GUI Classes
-#              Main Application/Controller 
+#              Main Application/Controller
 ######################################################
 
 #

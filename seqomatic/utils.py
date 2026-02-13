@@ -1,22 +1,35 @@
 import logging
-import os 
+import os
 import pprint
+import shutil
 
 # system selective imports
 from datetime import datetime
 from pytz import timezone
 
+# external imports
+import cv2
+import numpy as np
+
 ###############################################################################
-#                  common util functions
+#                  common util functions/constants
 ###############################################################################
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END='\033[0m'
 
 def create_folder_file(pos_path,name):
     if not os.path.exists(os.path.join(pos_path,name)):
         os.makedirs(os.path.join(pos_path,name))
-
-def denoise(x):
-    x[x<np.percentile(x, 85)]=0
-    return x
 
 def denoise(x):
     x[x<np.percentile(x, 85)]=0
@@ -39,13 +52,6 @@ def get_time():
     time_now = timezone('US/Eastern')
     time = str(datetime.now(time_now))[0:19] + "\n"
     return time
-
-
-def hattop_convert(x):
-    filterSize = (10, 10)
-    kernel=cv2.getStructuringElement(cv2.MORPH_RECT, filterSize)
-    return cv2.morphologyEx(x, cv2.MORPH_TOPHAT, kernel)
-
 
 
 def hattop_convert(x):

@@ -31,6 +31,8 @@ from device.Syringe_pump import Syringe_Pump
 from device.Heatingstage import heat_stage_group
 from device.Selector_2025 import ElveflowMux
 
+from utils import bcolors, get_time, denoise, hattop_convert
+
 warnings.filterwarnings("ignore")
 
      
