@@ -38,8 +38,9 @@ warnings.filterwarnings("ignore")
      
 class FluidicSystem():
 
-    def __init__(self, system_path, pos_path, slide_heater_dictionary):
+    def __init__(self, system_path, pos_path, slide_heater_dictionary, notification_callback=None):
         self.system_path = system_path
+        self.notification_callback = notification_callback
         with open(os.path.join(system_path,"config_file", "Tecan_syringe_pump.json"), 'r') as r:
             self.syringe_pump_cfg = json.load(r)
         self.syringe_pump_dictionary=self.syringe_pump_cfg [0]["Dict"]
@@ -95,7 +96,12 @@ class FluidicSystem():
         f = open(os.path.join(self.pos_path, "log.txt"), "a")
         f.write(txt)
         f.close()
-        
+
+    def _notify(self, method_name, *args, **kwargs):
+        """Helper to safely call notification callback methods"""
+        if self.notification_callback and hasattr(self.notification_callback, method_name):
+            getattr(self.notification_callback, method_name)(*args, **kwargs)
+
     def config_syringe_pump(self):
         self.syringe_pump=Syringe_Pump(self.syringe_pump_cfg)
         self.syringe_pump.connect_pump()
@@ -617,15 +623,17 @@ def get_position(pos):
 
 
 class Microscope():
-    def __init__(self, cfg, 
-                       pos_path, 
-                       slice_per_slide, 
-                       server, 
-                       mock_align, 
-                       fine_align, 
-                       system_path):
-        
+    def __init__(self, cfg,
+                       pos_path,
+                       slice_per_slide,
+                       server,
+                       mock_align,
+                       fine_align,
+                       system_path,
+                       notification_callback=None):
+
         self.system_path=system_path
+        self.notification_callback = notification_callback
         self.scope_cfg = cfg
         self.core = Core()
         self.pos_path = pos_path
@@ -691,7 +699,7 @@ class Microscope():
         if len(focus_poslist)!= sum(self.slicePerSlide) * 4:
             print(len(focus_poslist))
             print(sum(self.slicePerSlide) * 4)
-            update_error("Slice per slide is not consistent with number of FOV!")
+            self._notify('update_error', "Slice per slide is not consistent with number of FOV!")
             check_file=0
         else:
             check_file=1
@@ -714,6 +722,11 @@ class Microscope():
         f = open(os.path.join(self.pos_path, "log.txt"), "a")
         f.write(txt)
         f.close()
+
+    def _notify(self, method_name, *args, **kwargs):
+        """Helper to safely call notification callback methods"""
+        if self.notification_callback and hasattr(self.notification_callback, method_name):
+            getattr(self.notification_callback, method_name)(*args, **kwargs)
 
     def calculate_z_stack(self, start_pos, end_pos):
         df = pd.read_csv(os.path.join(self.pos_path, self.cycle + ".csv"))
@@ -772,7 +785,7 @@ class Microscope():
         self.z_new_ls.update(dict)
         txt = get_time() + self.cycle + " Position " + str(pos) + ' is_finished \n'
         self.write_log(txt)
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
 
     def image_with_piezo(self,path,pos,piezo_event,x,y,z,piezo_z):
         self.core.set_xy_position(x, y)
@@ -789,7 +802,7 @@ class Microscope():
         self.write_log(txt)
         txt = get_time() + self.cycle + ' scope start acq.acquire ' + pos + "\n"
         self.write_log(txt)
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
         with Acquisition(directory=path, name=pos,
                          show_display=False) as acq:
             acq.acquire(piezo_event)
@@ -826,7 +839,7 @@ class Microscope():
         update_process_bar(0)
         update_process_label("Focusing")
         print(get_time()+"start focus image")
-        add_highlight_from_scope(get_time()+"start focus image")
+        self._notify(\'add_highlight_from_scope\', get_time()+"start focus image")
         self.core.set_shutter_open(False)
         for index, row in poslist.iterrows():
             update_process_bar(self.i)
@@ -835,7 +848,7 @@ class Microscope():
                 print(txt)
                 self.write_log(txt)
                 self.core.set_position("DA Z Stage", self.piezo_middle_pos)
-                add_highlight_from_scope(txt)
+                self._notify(\'add_highlight_from_scope\', txt)
                 break
             pos = row['position']
             if self.piezo==1:
@@ -865,7 +878,7 @@ class Microscope():
                     #self.focus_status = 0
                     txt = get_time() + self.cycle + ' extrem focus change detected at ' + str(
                         i) + " position!\n"
-                    update_error(txt)
+                    self._notify(\'update_error\', txt)
                     self.write_log(txt)
                     self.focus_bad = 1
             if self.focus_bad == 0:
@@ -875,7 +888,7 @@ class Microscope():
             os.chdir(self.pos_path)
         except:
             txt=get_time()+"focus is wrong or cancelled"
-            update_error(txt)
+            self._notify(\'update_error\', txt)
             diff=0
         os.chdir(self.pos_path)
         return diff
@@ -911,7 +924,7 @@ class Microscope():
             with open(os.path.join(self.pos_path, "pre_adjusted_pos.pos"), "w") as outfile:
                 outfile.write(json_object)
             txt = get_time() + self.cycle + " saved regoffset.pos for microscope review and next cycle\n"
-            add_highlight_from_scope(txt)
+            self._notify(\'add_highlight_from_scope\', txt)
             self.write_log(txt)
             print("saved regoffset.pos for microscope review and next cycle")
             self.alignment_status = 1
@@ -933,7 +946,7 @@ class Microscope():
             if len(fname2) != len(fname1):
                 self.alignment_status = 0
                 txt = get_time() + "current cycle's image number in dicfouce folder is not consistent with pre cycle!"
-                update_error(txt)
+                self._notify(\'update_error\', txt)
                 self.write_log(txt)
                 return
             else:
@@ -960,25 +973,25 @@ class Microscope():
                 if len(self.slidenum) != len(self.imcurr):
                     self.alignment_status = 0
                     txt = get_time() + self.cycle + " The number of images is different from slice numbers. Abort.\n"
-                    update_error(txt)
+                    self._notify(\'update_error\', txt)
                     self.write_log(txt)
 
                 else:
                     self.calculate_shift()
 
     def calculate_shift_singlethread(self,i):
-        add_highlight_from_scope("Image System start to alignment at " + str(i) + "th position\n")
+        self._notify(\'add_highlight_from_scope\', "Image System start to alignment at " + str(i) + "th position\n")
         ref = self.imref[i]  # reference
         img = self.imcurr[i]
         xoffset, yoffset = self.imregcorr(img, ref)
         self.x_offset[i] = xoffset
         self.y_offset[i] = yoffset
         txt = get_time() + self.cycle + " finished " + str(i) + "th position\n"
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
         self.write_log(txt)
     def calculate_shift(self):
         threads = []
-        add_highlight_from_scope(get_time() + "Image System start to alignment!\n")
+        self._notify(\'add_highlight_from_scope\', get_time() + "Image System start to alignment!\n")
         self.x_offset = np.zeros(sum(self.pos_batch_size))
         self.y_offset = np.zeros(sum(self.pos_batch_size))
         self.i=100/sum(self.pos_batch_size)
@@ -992,7 +1005,7 @@ class Microscope():
                 txt=get_time()+"process canceled!"
                 print(txt)
                 self.write_log(txt)
-                add_highlight_from_scope(txt)
+                self._notify(\'add_highlight_from_scope\', txt)
                 break
             update_process_bar(self.i)
             t = threading.Thread(target=self.calculate_shift_singlethread, args=(i,))
@@ -1035,7 +1048,7 @@ class Microscope():
         with open(os.path.join(self.pos_path, "pre_adjusted_pos.pos"), "w") as outfile:
             outfile.write(json_object)
         txt = get_time() + self.cycle + " saved regoffset.pos for microscope review and next cycle\n"
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
         self.write_log(txt)
         print("saved regoffset.pos for microscope review and next cycle")
         return
@@ -1150,18 +1163,18 @@ class Microscope():
                 y_sub[-scope_constant.pos_per_slice:])
             if x_extreme_diff > 50:
                 txt = get_time() + self.cycle + " Slide " + str(i) + ' is tilted COUNTER CLOCKWISE.\n'
-                update_error(txt)
+                self._notify(\'update_error\', txt)
                 self.write_log(txt)
                 #self.alignment_status = 0
             if x_extreme_diff < -50:
                 txt = get_time() + self.cycle + " Slide " + str(i) + ' is tilted CLOCKWISE.\n'
-                update_error(txt)
+                self._notify(\'update_error\', txt)
                 self.write_log(txt)
                 #self.alignment_status = 0
             if max_range_xy > 50:
                 txt = get_time() + self.cycle + " Slide " + str(
                     i) + ' is tilted CLOCKWISEgrossly tilted and/or some registrations have failed. Double-check fixed positions.\n'
-                update_error(txt)
+                self._notify(\'update_error\', txt)
                 self.write_log(txt)
                 #self.alignment_status = 0
             print(self.cycle+" alignmentthread finish!")
@@ -1305,7 +1318,7 @@ class Microscope():
         txt=get_time()+""+self.cycle+" image and maxprojection finished!"+"\n"
         print(txt)
         self.write_log(txt)
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
 
 
     def create_max_projection_folder(self):
@@ -1314,7 +1327,7 @@ class Microscope():
             self.maxproject_list =self.tilepos_new
         else:
             txt = get_time() + self.cycle + "Can't find tiledregoff" + self.cycle + " datafile! \n"
-            update_error(txt)
+            self._notify(\'update_error\', txt)
             self.max_projection_status = 0
             return
 
@@ -1322,7 +1335,7 @@ class Microscope():
         if not os.path.exists(image_path):
             os.mkdir(image_path)
             txt = get_time() + self.cycle + ' maxprojection Folder is created!\n'
-            add_highlight_from_scope(txt)
+            self._notify(\'add_highlight_from_scope\', txt)
             self.write_log(txt)
             print(txt)
         if not os.path.exists(os.path.join(self.maxprojection_drive, self.pos_path[3:]+"_maxprojection")):
@@ -1356,13 +1369,13 @@ class Microscope():
             start_time = time.time()
             os.chdir(os.path.join(self.pos_path, self.cycle))
             self.maxprojection_image_cycle()
-            add_highlight_from_scope("--- %s seconds ---" % (time.time() - start_time))
+            self._notify(\'add_highlight_from_scope\', "--- %s seconds ---" % (time.time() - start_time))
             self.maxprojection_name='end'
             self.max_projection_status = 1
             self.fluidics = 1
         else:
             txt = get_time() + self.cycle + "Can not load image channel!"
-            update_error(txt)
+            self._notify(\'update_error\', txt)
             self.maxprojection_name = 'end'
             self.write_log(txt)
             print("Can not load image channel!")
@@ -1390,12 +1403,12 @@ class Microscope():
             txt=get_time()+"prepare "+pos+" in "+self.cycle+"\n"
             print(index)
             self.write_log(txt)
-            add_highlight_from_scope(txt)
+            self._notify(\'add_highlight_from_scope\', txt)
             if self.cancel_process ==1:
                 txt=get_time()+"process canceled!"
                 print(txt)
                 self.write_log(txt)
-                add_highlight_from_scope(txt)
+                self._notify(\'add_highlight_from_scope\', txt)
                 update_process_bar(0)
                 update_process_label("process")
                 self.core.set_position("DA Z Stage", self.piezo_middle_pos) # This is used when we have piezo
@@ -1410,7 +1423,7 @@ class Microscope():
                 self.write_log(txt)
                 error_message = "An error occurred: " + str(e)+ "\n"
                 self.write_log(error_message)
-                update_error(error_message)
+                self._notify(\'update_error\', error_message)
                 txt = get_time() + self.cycle + ' System try to reimage!' + "\n"
                 self.write_log(txt)
                 try:
@@ -1420,7 +1433,7 @@ class Microscope():
                                           row['Y'], row['Z'], self.piezo_event_pos[0])
                     txt = get_time() + "Second Acquisition passed!"+ "\n"
                     self.write_log(txt)
-                    update_error(txt)
+                    self._notify(\'update_error\', txt)
                 except Exception as e:
                     txt = get_time() + self.cycle + ' Second time Acq.acquire failed' + "\n"
                     self.write_log(txt)
@@ -1435,7 +1448,7 @@ class Microscope():
                 t.start()
                 threads.append(t)
             except:
-                update_error("Missing maxprojection")
+                self._notify(\'update_error\', "Missing maxprojection")
                 pass
 
         for t in threads:
@@ -1446,7 +1459,7 @@ class Microscope():
         txt=get_time()+"image is finished!"
         print(txt)
         self.write_log(txt)
-        add_highlight_from_scope(txt)
+        self._notify(\'add_highlight_from_scope\', txt)
         time.sleep(3)
         self.max_projection_status=self.check_transfer_complete(self.maxprojection_drive)
         return
@@ -1457,7 +1470,7 @@ class Microscope():
             txt = get_time() + "Maxprojection finish " + pos + " in "+self.cycle +"\n"
             print(txt)
             self.write_log(txt)
-            add_highlight_from_scope(txt)
+            self._notify(\'add_highlight_from_scope\', txt)
         finally:
             self.thread_limiter.release()
 
@@ -1513,7 +1526,7 @@ class Microscope():
         if len(matched_files_disk)!=file_number:
             txt = get_time() + "D drive doesn't have all FOV"
             print(txt)
-            update_error(txt)
+            self._notify(\'update_error\', txt)
             self.write_log(txt)
             check = 0
         else:

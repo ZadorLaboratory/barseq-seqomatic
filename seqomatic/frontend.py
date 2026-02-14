@@ -133,7 +133,8 @@ class SeqomaticGUI(tk.Tk):
             self.pos_path = "C://"
             self.fluidics = FluidicSystem( system_path=self.system_path,
                                           pos_path=self.pos_path,
-                                          slide_heater_dictionary=self.heater_dict)
+                                          slide_heater_dictionary=self.heater_dict,
+                                          notification_callback=self.notification_frame)
             if not os.path.exists(os.path.join(self.pos_path, "temp.txt")):
                 open(os.path.join(self.pos_path, "temp.txt"), 'w')
             if not os.path.exists(os.path.join(self.pos_path, "log.txt")):
@@ -213,7 +214,8 @@ class SeqomaticController(object):
     def assign_cycle_detail(self):
         if not os.path.exists(os.path.join( self.pos_path,"protocol.csv")):
             txt=get_time()+"couldn't find protocol.csv file, please create protocol if choose using user defined protocol!"
-            update_error(txt)
+            if self.notification_frame:
+                self.notification_frame.update_error(txt)
             return
         df=pd.read_csv(os.path.join(self.pos_path,"protocol.csv"))
         self.process_ls=df['process'].tolist()
@@ -348,7 +350,8 @@ class SeqomaticController(object):
                 t1 = Thread(target=self.fluidics.startSequence)
                 t1.start()
                 txt = get_time() + "Wash with water\n"
-                add_fluidics_status(txt)
+                if self.notification_frame:
+                    self.notification_frame.add_fluidics_status(txt)
                 self.write_log(txt)
                 t2=Thread(target=self.sensor_fluidics_process)
                 t2.start()
@@ -927,17 +930,18 @@ class ProcessFrame(ttk.Frame):
             self.imwidth = self.scope_cfg[0]["imwidth"]
 
         try:
-            self.scope = Microscope(self.scope_cfg, 
-                               self.pos_path, 
-                               self.slice_per_slide, 
-                               self.server, 
-                               self.skip_alignment, 
-                               0 , 
-                               system_path=self.system_path)
+            self.scope = Microscope(self.scope_cfg,
+                               self.pos_path,
+                               self.slice_per_slide,
+                               self.server,
+                               self.skip_alignment,
+                               0,
+                               system_path=self.system_path,
+                               notification_callback=self.controller.notification_frame)
         except:
             tk.messagebox.showinfo(title="Config failure ",
                                 message="Please run micromanager first!")
-            update_error("Please run micromanager first!")
+            self.controller.update_error("Please run micromanager first!")
             return
         
         if self.assigned_heater == 0:
@@ -946,7 +950,8 @@ class ProcessFrame(ttk.Frame):
             self.controller.chamber_list = list(self.heater_dict.keys())
         self.controller.fluidics = FluidicSystem( system_path=self.system_path,
                                        pos_path=self.pos_path,
-                                       slide_heater_dictionary=self.heater_dict)
+                                       slide_heater_dictionary=self.heater_dict,
+                                       notification_callback=self.controller.notification_frame)
         self.all_autobtn_normal()
 
     def recipe_btn_handler(self):
